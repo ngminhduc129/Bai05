@@ -104,3 +104,42 @@ class Device(ABC):
             f"Giá mua: {self._purchase_price:,.0f} VNĐ | "
             f"Trạng thái: {self._status.value}"
         )
+
+
+class INetworkable(ABC):
+    """
+    Interface biểu diễn năng lực kết nối mạng của thiết bị.
+    Độc lập với cây kế thừa Device.
+    """
+
+    @property
+    @abstractmethod
+    def ip_address(self) -> Optional[str]:
+        """Địa chỉ IP hiện tại của thiết bị (None nếu chưa kết nối)."""
+        pass
+
+    @abstractmethod
+    def connect(self, ip_address: str) -> None:
+        """
+        Kết nối thiết bị vào mạng với địa chỉ IP được cấp.
+        Yêu cầu:
+        - Địa chỉ IP không được rỗng.
+        - Không cho phép kết nối lại khi thiết bị đang kết nối.
+        """
+        pass
+
+    @abstractmethod
+    def disconnect(self) -> None:
+        """
+        Ngắt kết nối mạng.
+        Yêu cầu:
+        - Sau khi ngắt kết nối, is_connected phải trả về False.
+        - Đối tượng không còn địa chỉ IP đang hoạt động sau khi ngắt kết nối.
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def is_connected(self) -> bool:
+        """Kiểm tra trạng thái kết nối mạng của thiết bị."""
+        pass
