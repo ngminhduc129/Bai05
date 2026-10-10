@@ -143,3 +143,241 @@ class INetworkable(ABC):
     def is_connected(self) -> bool:
         """Kiểm tra trạng thái kết nối mạng của thiết bị."""
         pass
+
+
+class Computer(Device, INetworkable):
+    """
+    Lớp Máy tính kế thừa Device và thực thi interface INetworkable.
+    Máy tính luôn có khả năng kết nối mạng.
+    """
+
+    def __init__(
+        self,
+        device_id: str,
+        device_name: str,
+        year_of_usage: int,
+        purchase_price: float,
+        ram_size_gb: int,
+        processor_type: str,
+        has_discrete_gpu: bool,
+        status: DeviceStatus = DeviceStatus.ACTIVE
+    ) -> None:
+        super().__init__(device_id, device_name, year_of_usage, purchase_price, status)
+
+        if ram_size_gb <= 0:
+            raise ValueError("Dung lượng RAM phải lớn hơn 0 GB.")
+        if not processor_type or not processor_type.strip():
+            raise ValueError("Loại bộ xử lý không được để trống.")
+
+        self.ram_size_gb: int = ram_size_gb
+        self.processor_type: str = processor_type.strip()
+        self.has_discrete_gpu: bool = has_discrete_gpu
+
+        # Các thuộc tính phục vụ kết nối mạng (INetworkable)
+        self._ip_address: Optional[str] = None
+        self._is_connected: bool = False
+
+    # --- Triển khai INetworkable ---
+    @property
+    def ip_address(self) -> Optional[str]:
+        return self._ip_address
+
+    @property
+    def is_connected(self) -> bool:
+        return self._is_connected
+
+    def connect(self, ip_address: str) -> None:
+        if not ip_address or not ip_address.strip():
+            raise ValueError("Địa chỉ IP không được rỗng.")
+        if self._is_connected:
+            raise RuntimeError(
+                f"Thiết bị '{self.device_id}' đang kết nối tại {self._ip_address}. Không thể kết nối lại!"
+            )
+        self._ip_address = ip_address.strip()
+        self._is_connected = True
+
+    def disconnect(self) -> None:
+        self._ip_address = None
+        self._is_connected = False
+
+    # --- Triển khai tính chi phí bảo trì ---
+    def calculate_annual_maintenance_cost(self) -> float:
+        """
+        Chi phí bảo trì máy tính:
+        - 5% giá mua cơ bản.
+        - Cộng thêm 2% giá mua nếu có GPU rời.
+        - Nếu thiết bị đã sử dụng trên 5 năm (> 5), cộng thêm 1% giá mua.
+        """
+        rate = 0.05
+        if self.has_discrete_gpu:
+            rate += 0.02
+        if self.age > 5:
+            rate += 0.01
+        return self._purchase_price * rate
+
+    def __str__(self) -> str:
+        net_info = f"Online ({self._ip_address})" if self._is_connected else "Offline"
+        return (
+            f"{super().__str__()} | RAM: {self.ram_size_gb}GB | CPU: {self.processor_type} | "
+            f"GPU rời: {'Có' if self.has_discrete_gpu else 'Không'} | Mạng: {net_info}"
+        )
+
+
+class Printer(Device):
+    """
+    Lớp Máy in kế thừa Device.
+    Đại diện cho máy in thông thường (không có kết nối mạng trực tiếp).
+    """
+
+    def __init__(
+        self,
+        device_id: str,
+        device_name: str,
+        year_of_usage: int,
+        purchase_price: float,
+        printer_type: str,
+        pages_printed: int,
+        has_network_support: bool = False,
+        is_color: bool = False,
+        status: DeviceStatus = DeviceStatus.ACTIVE
+    ) -> None:
+        super().__init__(device_id, device_name, year_of_usage, purchase_price, status)
+
+        if not printer_type or printer_type.strip().lower() not in ["laser", "phun", "inkjet"]:
+            raise ValueError("Loại máy in phải là 'laser' hoặc 'phun'.")
+        if pages_printed < 0:
+            raise ValueError("Số trang đã in không được âm.")
+
+        self.printer_type: str = printer_type.strip().lower()
+        self.pages_printed: int = pages_printed
+        self.has_network_support: bool = has_network_support
+        # Thuộc tính bổ sung có giải thích: máy in màu có hao mòn đầu phun và hộp mực màu cao hơn
+        self.is_color: bool = is_color
+
+    def calculate_annual_maintenance_cost(self) -> float:
+        """
+        Chi phí bảo trì máy in:
+        - 4% giá mua.
+        - Cộng thêm 500.000 đồng nếu số trang đã in > 100.000.
+        - Cộng thêm 300.000 đồng nếu là máy in màu.
+        """
+        cost = self._purchase_price * 0.04
+        if self.pages_printed > 100_000:
+            cost += 500_000.0
+        if self.is_color:
+            cost += 300_000.0
+        return cost
+
+    def __str__(self) -> str:
+        color_str = "Màu" if self.is_color else "Trắng đen"
+        net_str = "Có cổng mạng" if self.has_network_support else "Không cổng mạng"
+        return (
+            f"{super().__str__()} | Loại: {self.printer_type.capitalize()} | "
+            f"Số trang: {self.pages_printed:,} | Chế độ: {color_str} | Hỗ trợ mạng: {net_str}"
+        )
+
+
+class NetworkPrinter(Printer, INetworkable):
+    """
+    Máy in hỗ trợ kết nối mạng (NetworkPrinter).
+    Kế thừa Printer và thực thi interface INetworkable.
+    Đây là thiết kế mô hình hóa cho yêu cầu 'chỉ một số máy in có khả năng mạng'
+    theo nguyên lý phân tách interface (ISP).
+    """
+
+    def __init__(
+        self,
+        device_id: str,
+        device_name: str,
+        year_of_usage: int,
+        purchase_price: float,
+        printer_type: str,
+        pages_printed: int,
+        is_color: bool = False,
+        status: DeviceStatus = DeviceStatus.ACTIVE
+    ) -> None:
+        # has_network_support luôn là True đối với NetworkPrinter
+        super().__init__(
+            device_id=device_id,
+            device_name=device_name,
+            year_of_usage=year_of_usage,
+            purchase_price=purchase_price,
+            printer_type=printer_type,
+            pages_printed=pages_printed,
+            has_network_support=True,
+            is_color=is_color,
+            status=status
+        )
+        self._ip_address: Optional[str] = None
+        self._is_connected: bool = False
+
+    # --- Triển khai INetworkable ---
+    @property
+    def ip_address(self) -> Optional[str]:
+        return self._ip_address
+
+    @property
+    def is_connected(self) -> bool:
+        return self._is_connected
+
+    def connect(self, ip_address: str) -> None:
+        if not ip_address or not ip_address.strip():
+            raise ValueError("Địa chỉ IP không được rỗng.")
+        if self._is_connected:
+            raise RuntimeError(
+                f"Máy in mạng '{self.device_id}' đang kết nối tại {self._ip_address}. Không thể kết nối lại!"
+            )
+        self._ip_address = ip_address.strip()
+        self._is_connected = True
+
+    def disconnect(self) -> None:
+        self._ip_address = None
+        self._is_connected = False
+
+    def __str__(self) -> str:
+        net_status = f"Online ({self._ip_address})" if self._is_connected else "Offline"
+        return f"{super().__str__()} | Trạng thái mạng: {net_status}"
+
+
+class Projector(Device):
+    """
+    Lớp Máy chiếu kế thừa Device.
+    Không có yêu cầu kết nối mạng trong phiên bản hiện tại.
+    """
+
+    def __init__(
+        self,
+        device_id: str,
+        device_name: str,
+        year_of_usage: int,
+        purchase_price: float,
+        brightness_lumens: int,
+        lamp_hours_used: int,
+        status: DeviceStatus = DeviceStatus.ACTIVE
+    ) -> None:
+        super().__init__(device_id, device_name, year_of_usage, purchase_price, status)
+
+        if brightness_lumens <= 0:
+            raise ValueError("Độ sáng (lumen) phải lớn hơn 0.")
+        if lamp_hours_used < 0:
+            raise ValueError("Số giờ sử dụng bóng đèn không được âm.")
+
+        self.brightness_lumens: int = brightness_lumens
+        self.lamp_hours_used: int = lamp_hours_used
+
+    def calculate_annual_maintenance_cost(self) -> float:
+        """
+        Chi phí bảo trì máy chiếu:
+        - 3% giá mua.
+        - Cộng thêm 1.500.000 đồng nếu bóng đèn đã sử dụng trên 3.000 giờ (> 3000).
+        """
+        cost = self._purchase_price * 0.03
+        if self.lamp_hours_used > 3_000:
+            cost += 1_500_000.0
+        return cost
+
+    def __str__(self) -> str:
+        return (
+            f"{super().__str__()} | Độ sáng: {self.brightness_lumens} lumens | "
+            f"Giờ bóng đèn: {self.lamp_hours_used:,}h"
+        )
