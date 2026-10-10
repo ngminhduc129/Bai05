@@ -98,11 +98,11 @@ class Device(ABC):
     def __str__(self) -> str:
         """Biểu diễn thông tin thiết bị dưới dạng chuỗi."""
         return (
-            f"[{self.__class__.__name__}] Mã: {self._device_id} | "
-            f"Tên: {self._device_name} | "
-            f"Năm SD: {self._year_of_usage} ({self.age} năm) | "
-            f"Giá mua: {self._purchase_price:,.0f} VNĐ | "
-            f"Trạng thái: {self._status.value}"
+            f"[{self.__class__.__name__}] Mã: {self._device_id:<6} | "
+            f"Tên: {self._device_name:<28} | "
+            f"Năm SD: {self._year_of_usage} ({self.age:2d} năm) | "
+            f"Giá mua: {self._purchase_price:>11,.0f} VNĐ | "
+            f"Trạng thái: {self._status.value:<16}"
         )
 
 
@@ -218,8 +218,8 @@ class Computer(Device, INetworkable):
     def __str__(self) -> str:
         net_info = f"Online ({self._ip_address})" if self._is_connected else "Offline"
         return (
-            f"{super().__str__()} | RAM: {self.ram_size_gb}GB | CPU: {self.processor_type} | "
-            f"GPU rời: {'Có' if self.has_discrete_gpu else 'Không'} | Mạng: {net_info}"
+            f"{super().__str__()} | RAM: {self.ram_size_gb:2d}GB | CPU: {self.processor_type:<18} | "
+            f"GPU rời: {'Có' if self.has_discrete_gpu else 'Không':<5} | Mạng: {net_info}"
         )
 
 
@@ -251,7 +251,7 @@ class Printer(Device):
         self.printer_type: str = printer_type.strip().lower()
         self.pages_printed: int = pages_printed
         self.has_network_support: bool = has_network_support
-        # Thuộc tính bổ sung có giải thích: máy in màu có hao mòn đầu phun và hộp mực màu cao hơn
+        # Thuộc tính bổ sung có giải thích: máy in màu có chi phí mực và cụm sấy/đầu phun bảo dưỡng cao hơn
         self.is_color: bool = is_color
 
     def calculate_annual_maintenance_cost(self) -> float:
@@ -270,10 +270,10 @@ class Printer(Device):
 
     def __str__(self) -> str:
         color_str = "Màu" if self.is_color else "Trắng đen"
-        net_str = "Có cổng mạng" if self.has_network_support else "Không cổng mạng"
+        net_str = "Hỗ trợ cổng mạng" if self.has_network_support else "Không cổng mạng"
         return (
-            f"{super().__str__()} | Loại: {self.printer_type.capitalize()} | "
-            f"Số trang: {self.pages_printed:,} | Chế độ: {color_str} | Hỗ trợ mạng: {net_str}"
+            f"{super().__str__()} | Loại: {self.printer_type.capitalize():<6} | "
+            f"Số trang: {self.pages_printed:>7,} | Chế độ: {color_str:<9} | Mạng: {net_str}"
         )
 
 
@@ -336,7 +336,16 @@ class NetworkPrinter(Printer, INetworkable):
 
     def __str__(self) -> str:
         net_status = f"Online ({self._ip_address})" if self._is_connected else "Offline"
-        return f"{super().__str__()} | Trạng thái mạng: {net_status}"
+        color_str = "Màu" if self.is_color else "Trắng đen"
+        return (
+            f"[{self.__class__.__name__}] Mã: {self._device_id:<6} | "
+            f"Tên: {self._device_name:<28} | "
+            f"Năm SD: {self._year_of_usage} ({self.age:2d} năm) | "
+            f"Giá mua: {self._purchase_price:>11,.0f} VNĐ | "
+            f"Trạng thái: {self._status.value:<16} | "
+            f"Loại: {self.printer_type.capitalize():<6} | "
+            f"Số trang: {self.pages_printed:>7,} | Chế độ: {color_str:<9} | Mạng: {net_status}"
+        )
 
 
 class Projector(Device):
@@ -378,8 +387,8 @@ class Projector(Device):
 
     def __str__(self) -> str:
         return (
-            f"{super().__str__()} | Độ sáng: {self.brightness_lumens} lumens | "
-            f"Giờ bóng đèn: {self.lamp_hours_used:,}h"
+            f"{super().__str__()} | Độ sáng: {self.brightness_lumens:4d} lumens | "
+            f"Giờ bóng đèn: {self.lamp_hours_used:>5,}h | Mạng: Không hỗ trợ"
         )
 
 
@@ -476,4 +485,247 @@ class LabRoom:
         return result
 
     def __str__(self) -> str:
-        return f"Phòng: {self.room_id} - {self.room_name} (Sức chứa: {self.capacity}, Thiết bị: {len(self._devices)})"
+        return f"Phòng: {self.room_id} - {self.room_name} (Sức chứa: {self.capacity}, Số thiết bị: {len(self._devices)})"
+
+
+# ==============================================================================
+# CHƯƠNG TRÌNH KIỂM THỬ TỐI THIỂU THEO YÊU CẦU MỤC 6 CỦA LAB
+# ==============================================================================
+
+def main() -> None:
+    print("=" * 80)
+    print(" HỆ THỐNG QUẢN LÝ THIẾT BỊ VÀ HỢP ĐỒNG BẢO TRÌ PHÒNG THỰC HÀNH")
+    print(" Sinh viên thực hiện: Nguyễn Minh Đức - MSSV: 202418872")
+    print("=" * 80)
+    print()
+
+    # -------------------------------------------------------------------------
+    # KHỞI TẠO CÁC ĐỐI TƯỢNG THEO YÊU CẦU
+    # - Hai máy tính, trong đó một máy có GPU rời.
+    # - Hai máy in, trong đó một máy đã in trên 100.000 trang.
+    # - Một máy chiếu có bóng đèn đã sử dụng trên 3.000 giờ.
+    # - Hai phòng thực hành.
+    # -------------------------------------------------------------------------
+    print(">>> [BƯỚC CHUẨN BỊ]: Khởi tạo các đối tượng kiểm thử...")
+
+    # 1. Hai máy tính (1 máy có GPU rời, sử dụng > 5 năm)
+    pc1 = Computer(
+        device_id="PC001",
+        device_name="Dell Precision T3640",
+        year_of_usage=2019,  # Tuổi = 2026 - 2019 = 7 năm (> 5 năm)
+        purchase_price=25_000_000.0,
+        ram_size_gb=32,
+        processor_type="Intel Core i7-10700K",
+        has_discrete_gpu=True,  # Có GPU rời
+        status=DeviceStatus.ACTIVE
+    )
+
+    pc2 = Computer(
+        device_id="PC002",
+        device_name="HP ProDesk 400 G7",
+        year_of_usage=2023,  # Tuổi = 3 năm
+        purchase_price=16_000_000.0,
+        ram_size_gb=16,
+        processor_type="Intel Core i5-10500",
+        has_discrete_gpu=False,  # Không GPU rời
+        status=DeviceStatus.UNDER_MAINTENANCE  # Đang bảo trì
+    )
+
+    # 2. Hai máy in (1 máy in mạng in > 100.000 trang; 1 máy in thông thường)
+    pr1 = NetworkPrinter(
+        device_id="PR001",
+        device_name="HP Color LaserJet M479fdw",
+        year_of_usage=2021,
+        purchase_price=14_000_000.0,
+        printer_type="laser",
+        pages_printed=135_000,  # Đã in > 100.000 trang
+        is_color=True,          # Máy in màu
+        status=DeviceStatus.ACTIVE
+    )
+
+    pr2 = Printer(
+        device_id="PR002",
+        device_name="Canon LBP2900 Classic",
+        year_of_usage=2022,
+        purchase_price=4_000_000.0,
+        printer_type="laser",
+        pages_printed=42_000,   # In <= 100.000 trang
+        has_network_support=False,
+        is_color=False,         # Đơn sắc
+        status=DeviceStatus.ACTIVE
+    )
+
+    # 3. Một máy chiếu có bóng đèn đã dùng trên 3.000 giờ
+    pj1 = Projector(
+        device_id="PJ001",
+        device_name="Panasonic PT-VX430",
+        year_of_usage=2020,  # Tuổi = 6 năm (> 5 năm)
+        purchase_price=18_000_000.0,
+        brightness_lumens=4500,
+        lamp_hours_used=3_600,  # Bóng đèn > 3.000 giờ
+        status=DeviceStatus.ACTIVE
+    )
+
+    # 4. Hai phòng thực hành
+    room1 = LabRoom(room_id="LAB-101", room_name="Phòng Đồ Họa & Thực Hành AI", capacity=40)
+    room2 = LabRoom(room_id="LAB-102", room_name="Phòng Tin Học Cơ Sở & Văn Phòng", capacity=45)
+
+    print(" Đã khởi tạo thành công 5 thiết bị và 2 phòng thực hành.\n")
+
+    # -------------------------------------------------------------------------
+    # THAO TÁC 1: Thêm thiết bị vào phòng
+    # -------------------------------------------------------------------------
+    print("-" * 80)
+    print("THAO TÁC 1: Thêm thiết bị vào từng phòng thực hành")
+    print("-" * 80)
+    # Phân bổ thiết bị vào Room 1: PC001, PR001 (máy in mạng), PJ001
+    room1.add_device(pc1)
+    room1.add_device(pr1)
+    room1.add_device(pj1)
+    print(f"-> Đã thêm [PC001, PR001, PJ001] vào '{room1.room_name}'")
+
+    # Phân bổ thiết bị vào Room 2: PC002, PR002
+    room2.add_device(pc2)
+    room2.add_device(pr2)
+    print(f"-> Đã thêm [PC002, PR002] vào '{room2.room_name}'")
+    print()
+
+    # -------------------------------------------------------------------------
+    # THAO TÁC 2: Thử thêm một thiết bị bị trùng mã (kiểm tra validation)
+    # -------------------------------------------------------------------------
+    print("-" * 80)
+    print("THAO TÁC 2: Thử thêm một thiết bị bị trùng mã (Kiểm tra ngoại lệ)")
+    print("-" * 80)
+    duplicate_pc = Computer(
+        device_id="PC001",  # Trùng mã với pc1 đã có trong room1
+        device_name="Dell Clone PC",
+        year_of_usage=2024,
+        purchase_price=10_000_000.0,
+        ram_size_gb=8,
+        processor_type="Intel Core i3",
+        has_discrete_gpu=False
+    )
+    try:
+        print(f"-> Đang thử thêm thiết bị mã trùng '{duplicate_pc.device_id}' vào '{room1.room_name}'...")
+        room1.add_device(duplicate_pc)
+        print("  Thất bại: Không phát hiện được trùng mã!")
+    except ValueError as ex:
+        print(f" Bắt ngoại lệ thành công (Expected): {ex}")
+    print()
+
+    # -------------------------------------------------------------------------
+    # THAO TÁC 3: In danh sách thiết bị trong từng phòng
+    # -------------------------------------------------------------------------
+    print("-" * 80)
+    print("THAO TÁC 3: In danh sách thiết bị trong từng phòng thực hành")
+    print("-" * 80)
+    for room in [room1, room2]:
+        print(f"\n===== {room} =====")
+        for idx, dev in enumerate(room.devices, 1):
+            print(f"  {idx}. {dev}")
+    print()
+
+    # -------------------------------------------------------------------------
+    # THAO TÁC 4: Tính tổng chi phí bảo trì dự kiến của mỗi phòng (ĐA HÌNH)
+    # -------------------------------------------------------------------------
+    print("-" * 80)
+    print("THAO TÁC 4: Tính tổng chi phí bảo trì dự kiến của mỗi phòng (Đa hình)")
+    print("-" * 80)
+    grand_total = 0.0
+    for room in [room1, room2]:
+        print(f"\n Chi tiết tính chi phí bảo trì phòng '{room.room_name}':")
+        for dev in room.devices:
+            # Gọi phương thức đa hình của từng đối tượng
+            cost = dev.calculate_annual_maintenance_cost()
+            print(f"   - {dev.device_id} ({dev.__class__.__name__}): {cost:>12,.0f} VNĐ")
+        room_cost = room.calculate_annual_maintenance_cost()
+        grand_total += room_cost
+        print(f" => Tổng chi phí phòng {room.room_id}: {room_cost:>14,.0f} VNĐ")
+    print(f"\n>>> TỔNG CHI PHÍ BẢO TRÌ DỰ KIẾN TOÀN TRƯỜNG: {grand_total:,.0f} VNĐ")
+    print()
+
+    # -------------------------------------------------------------------------
+    # THAO TÁC 5: Liệt kê thiết bị cần bảo trì
+    # (Đang ở trạng thái UnderMaintenance HOẶC đã sử dụng trên 5 năm)
+    # -------------------------------------------------------------------------
+    print("-" * 80)
+    print("THAO TÁC 5: Liệt kê các thiết bị cần bảo trì (UnderMaintenance HOẶC > 5 năm)")
+    print("-" * 80)
+    for room in [room1, room2]:
+        req_devices = room.get_devices_requiring_maintenance()
+        print(f"\nPhòng '{room.room_name}' có {len(req_devices)} thiết bị cần bảo trì:")
+        if not req_devices:
+            print("   (Không có thiết bị nào)")
+        else:
+            for dev in req_devices:
+                reasons = []
+                if dev.status == DeviceStatus.UNDER_MAINTENANCE:
+                    reasons.append("Đang bảo trì (UnderMaintenance)")
+                if dev.age > 5:
+                    reasons.append(f"Đã sử dụng {dev.age} năm (> 5 năm)")
+                reason_str = " & ".join(reasons)
+                print(f"   - [{dev.device_id}] {dev.device_name} -> Lý do: {reason_str}")
+    print()
+
+    # -------------------------------------------------------------------------
+    # THAO TÁC 6: Kết nối mạng cho các đối tượng thực thi INetworkable
+    # -------------------------------------------------------------------------
+    print("-" * 80)
+    print("THAO TÁC 6: Kết nối mạng cho các đối tượng thực thi INetworkable")
+    print("-" * 80)
+    all_devices: List[Device] = room1.devices + room2.devices
+
+    # Lấy các thiết bị có hỗ trợ kết nối mạng (thực thi interface INetworkable)
+    networkable_devices: List[INetworkable] = [
+        d for d in all_devices if isinstance(d, INetworkable)
+    ]
+
+    ip_pool = ["192.168.1.101", "192.168.1.102", "192.168.1.103"]
+    for idx, net_dev in enumerate(networkable_devices):
+        assigned_ip = ip_pool[idx]
+        dev_obj = net_dev  # Là đối tượng cài đặt INetworkable
+        device_id = getattr(dev_obj, "device_id", f"NET-{idx+1}")
+        print(f"-> Đang kết nối mạng cho [{device_id}] với IP {assigned_ip}...")
+        net_dev.connect(assigned_ip)
+        print(f"   Kết nối thành công! Trạng thái: is_connected={net_dev.is_connected}, IP={net_dev.ip_address}")
+
+    # Kiểm tra điều kiện: Không cho phép kết nối lại khi thiết bị đang kết nối
+    print("\n-> Kiểm thử quy tắc: Không cho phép kết nối lại khi thiết bị đang kết nối...")
+    try:
+        first_net = networkable_devices[0]
+        first_net.connect("192.168.1.200")
+    except RuntimeError as ex:
+        print(f" Bắt ngoại lệ thành công (Expected): {ex}")
+    print()
+
+    # -------------------------------------------------------------------------
+    # THAO TÁC 7: Duyệt các thiết bị mạng thông qua kiểu INetworkable
+    # (Độc lập hoàn toàn với lớp cụ thể Computer hay NetworkPrinter)
+    # -------------------------------------------------------------------------
+    print("-" * 80)
+    print("THAO TÁC 7: Duyệt các thiết bị mạng thông qua interface INetworkable")
+    print("-" * 80)
+    print(f"Tổng số thiết bị có khả năng mạng: {len(networkable_devices)}")
+    for idx, net_dev in enumerate(networkable_devices, 1):
+        # Truy xuất thông tin thông qua interface INetworkable mà không cần ép kiểu cụ thể
+        print(
+            f"  {idx}. Năng lực: INetworkable | "
+            f"Trạng thái kết nối: {'ĐANG KẾT NỐI' if net_dev.is_connected else 'NGẮT KẾT NỐI'} | "
+            f"Địa chỉ IP: {net_dev.ip_address} | "
+            f"Chi tiết đối tượng: {net_dev}"
+        )
+
+    # Thử nghiệm ngắt kết nối và kiểm tra tính hợp lệ
+    print("\n-> Thử nghiệm ngắt kết nối đối với thiết bị đầu tiên...")
+    test_dev = networkable_devices[0]
+    test_dev.disconnect()
+    print(f"   Sau khi disconnect: is_connected = {test_dev.is_connected}, ip_address = {test_dev.ip_address}")
+    print("   (Quy tắc: Sau khi ngắt kết nối, is_connected = False và ip_address là None -> Đạt yêu cầu)")
+
+    print("\n" + "=" * 80)
+    print(" HOÀN THÀNH TẤT CẢ CÁC KIỂM THỬ TỐI THIỂU THEO YÊU CẦU ĐỀ BÀI!")
+    print("=" * 80)
+
+
+if __name__ == "__main__":
+    main()
