@@ -381,3 +381,99 @@ class Projector(Device):
             f"{super().__str__()} | Độ sáng: {self.brightness_lumens} lumens | "
             f"Giờ bóng đèn: {self.lamp_hours_used:,}h"
         )
+
+
+class LabRoom:
+    """
+    Lớp LabRoom biểu diễn phòng thực hành.
+    Thể hiện quan hệ KẾT TẬP (Aggregation) với Device:
+    - Phòng chứa danh sách các thiết bị.
+    - Thiết bị có thể tồn tại độc lập mà không nhất thiết phải thuộc về phòng nào.
+    - Nếu phòng bị xóa, thiết bị vẫn tiếp tục tồn tại.
+    """
+
+    def __init__(self, room_id: str, room_name: str, capacity: int) -> None:
+        if not room_id or not room_id.strip():
+            raise ValueError("Mã phòng không được để trống.")
+        if not room_name or not room_name.strip():
+            raise ValueError("Tên phòng không được để trống.")
+        if capacity <= 0:
+            raise ValueError("Sức chứa phòng phải lớn hơn 0.")
+
+        self.room_id: str = room_id.strip()
+        self.room_name: str = room_name.strip()
+        self.capacity: int = capacity
+        self._devices: List[Device] = []
+
+    @property
+    def devices(self) -> List[Device]:
+        """Trả về bản sao danh sách thiết bị để đảm bảo tính đóng gói."""
+        return list(self._devices)
+
+    def add_device(self, device: Device) -> None:
+        """
+        Thêm thiết bị vào phòng.
+        Quy tắc:
+        1. Không chấp nhận đối tượng thiết bị null/None.
+        2. Không thêm hai thiết bị có cùng mã vào một phòng.
+        """
+        if device is None:
+            raise TypeError("Không chấp nhận đối tượng thiết bị null (None).")
+        if not isinstance(device, Device):
+            raise TypeError("Đối tượng phải kế thừa từ lớp Device.")
+
+        # Kiểm tra trùng mã thiết bị trong phòng
+        if any(d.device_id == device.device_id for d in self._devices):
+            raise ValueError(
+                f"Lỗi thêm thiết bị: Mã thiết bị '{device.device_id}' đã tồn tại trong phòng '{self.room_name}'!"
+            )
+
+        self._devices.append(device)
+
+    def remove_device(self, device_id: str) -> bool:
+        """Xóa thiết bị khỏi phòng theo mã thiết bị."""
+        if not device_id:
+            return False
+        for i, device in enumerate(self._devices):
+            if device.device_id == device_id.strip():
+                del self._devices[i]
+                return True
+        return False
+
+    def find_device(self, device_id: str) -> Optional[Device]:
+        """Tìm thiết bị theo mã trong phòng."""
+        if not device_id:
+            return None
+        target_id = device_id.strip()
+        for device in self._devices:
+            if device.device_id == target_id:
+                return device
+        return None
+
+    def calculate_annual_maintenance_cost(self) -> float:
+        """
+        Tính tổng chi phí bảo trì dự kiến trong 1 năm của tất cả thiết bị trong phòng.
+        Quy tắc:
+        - Phải sử dụng tính ĐA HÌNH (Polymorphism).
+        - Tuyệt đối không kiểm tra lần lượt bằng if hoặc switch/isinstance để xét loại thiết bị.
+        """
+        total_cost = 0.0
+        for device in self._devices:
+            # Gọi phương thức ảo/trừu tượng thông qua tham chiếu lớp cơ sở Device
+            total_cost += device.calculate_annual_maintenance_cost()
+        return total_cost
+
+    def get_devices_requiring_maintenance(self) -> List[Device]:
+        """
+        Lọc danh sách các thiết bị cần bảo trì:
+        - Đang ở trạng thái UnderMaintenance; HOẶC
+        - Có thời gian sử dụng trên 5 năm (> 5 năm).
+        """
+        result = []
+        for device in self._devices:
+            if device.status == DeviceStatus.UNDER_MAINTENANCE or device.age > 5:
+                result.append(device)
+        return result
+
+    def __str__(self) -> str:
+        return f"Phòng: {self.room_id} - {self.room_name} (Sức chứa: {self.capacity}, Thiết bị: {len(self._devices)})"
