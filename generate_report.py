@@ -17,7 +17,7 @@ MD_CONTENT = """# BÁO CÁO THỰC HÀNH TUẦN 05 (LAB W05)
 - **Họ và tên:** Nguyễn Minh Đức
 - **Môn học:** Lập trình hướng đối tượng (OOP)
 - **Học kỳ:** 2026.1
-- **Kho lưu trữ GitHub (Mã nguồn):** [https://github.com/ngminhduc129/OOP-Bai05-DeviceManagement](https://github.com/ngminhduc129/OOP-Bai05-DeviceManagement)
+- **Kho lưu trữ GitHub (Mã nguồn):** [https://github.com/ngminhduc129/Bai05](https://github.com/ngminhduc129/Bai05)
 - **Tệp mã nguồn chính:** `main.py`
 
 ---
@@ -461,7 +461,7 @@ HTML_CONTENT = """<!DOCTYPE html>
   <p><strong>Mã sinh viên:</strong> 202418872</p>
   <p><strong>Họ và tên:</strong> Nguyễn Minh Đức</p>
   <p><strong>Môn học:</strong> Lập trình hướng đối tượng (OOP) - Học kỳ: 2026.1</p>
-  <p><strong>Kho lưu trữ GitHub:</strong> <a href="https://github.com/ngminhduc129/OOP-Bai05-DeviceManagement">https://github.com/ngminhduc129/OOP-Bai05-DeviceManagement</a></p>
+  <p><strong>Kho lưu trữ GitHub:</strong> <a href="https://github.com/ngminhduc129/Bai05">https://github.com/ngminhduc129/Bai05</a></p>
   <p><strong>Tệp mã nguồn đơn nhất:</strong> <code>main.py</code></p>
 </div>
 

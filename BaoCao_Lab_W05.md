@@ -8,7 +8,7 @@
 - **Họ và tên:** Nguyễn Minh Đức
 - **Môn học:** Lập trình hướng đối tượng (OOP)
 - **Học kỳ:** 2026.1
-- **Kho lưu trữ GitHub (Mã nguồn):** [https://github.com/ngminhduc129/OOP-Bai05-DeviceManagement](https://github.com/ngminhduc129/OOP-Bai05-DeviceManagement)
+- **Kho lưu trữ GitHub (Mã nguồn):** [https://github.com/ngminhduc129/Bai05](https://github.com/ngminhduc129/Bai05)
 - **Tệp mã nguồn chính:** `main.py`
 
 ---
