@@ -29,16 +29,28 @@ Hệ thống quản lý trang thiết bị phòng thực hành tin học tại t
 
 ```text
 Bai05/
-├── main.py                 # File mã nguồn đơn nhất chứa toàn bộ hệ thống & kiểm thử
-├── class_diagram.drawio    # Sơ đồ quan hệ lớp định dạng Draw.io XML
-├── BaoCao_Lab_W05.docx     # File báo cáo định dạng Microsoft Word (.docx)
-├── BaoCao_Lab_W05.pdf      # File báo cáo định dạng PDF (.pdf)
-├── BaoCao_Lab_W05.md       # File báo cáo chi tiết định dạng Markdown
-├── BaoCao_Lab_W05.html     # File báo cáo định dạng HTML
-├── generate_report.py      # Script tự động xuất báo cáo ra các định dạng
-├── generate_drawio.py      # Script tạo file class_diagram.drawio
-├── lab w05a.pdf            # Đề bài thực hành gốc
-└── README.md               # Tài liệu hướng dẫn dự án
+├── models.py                     # Định nghĩa các lớp thực thể OOP (Device, Computer, Printer, ...)
+├── main.py                       # Master Test Runner điều phối chạy bộ 7 test cases độc lập
+├── tests/                        # Thư mục bộ 7 Test Cases độc lập (1 file = 1 test case)
+│   ├── __init__.py
+│   ├── test_tc1_add_device.py        # TC-01: Thêm thiết bị & validation kiểu dữ liệu
+│   ├── test_tc2_duplicate_id.py       # TC-02: Bắt lỗi trùng mã thiết bị & Read-only
+│   ├── test_tc3_list_devices.py       # TC-03: In danh sách thiết bị & tính đóng gói
+│   ├── test_tc4_maintenance_cost.py   # TC-04: Tính chi phí bảo trì đa hình
+│   ├── test_tc5_maintenance_filter.py # TC-05: Lọc thiết bị cần bảo dưỡng
+│   ├── test_tc6_network_connect.py    # TC-06: Quy tắc kết nối mạng INetworkable
+│   └── test_tc7_network_iteration.py  # TC-07: Duyệt thiết bị qua interface INetworkable
+├── class_diagram.drawio          # Sơ đồ quan hệ lớp định dạng Draw.io XML
+├── class_diagram.svg             # Sơ đồ quan hệ lớp định dạng Vector SVG
+├── class_diagram.drawio.png      # Sơ đồ quan hệ lớp ảnh PNG xuất từ Draw.io
+├── BaoCao_Lab_W05.docx           # File báo cáo định dạng Microsoft Word (.docx)
+├── BaoCao_Lab_W05.pdf            # File báo cáo định dạng PDF (.pdf)
+├── BaoCao_Lab_W05.md             # File báo cáo chi tiết định dạng Markdown
+├── BaoCao_Lab_W05.html           # File báo cáo định dạng HTML
+├── generate_report.py            # Script tự động xuất báo cáo ra các định dạng
+├── generate_diagrams.py          # Script tạo sơ đồ Draw.io & SVG
+├── lab w05a.pdf                  # Đề bài thực hành gốc
+└── README.md                     # Tài liệu hướng dẫn dự án
 ```
 
 ---
@@ -178,20 +190,41 @@ classDiagram
 
 ---
 
-## 5. HƯỚNG DẪN CHẠY CHƯƠNG TRÌNH
+## 5. HƯỚNG DẪN CHẠY CHƯƠNG TRÌNH & BỘ KIỂM THỬ
 
 ### Yêu cầu môi trường
-- Python 3.8+ (khuyên dùng Python 3.10 trở lên)
-- Không yêu cầu cài đặt thư viện bên ngoài (sử dụng thư viện chuẩn `abc`, `enum`, `datetime`, `typing`).
+- Python 3.8+ (khuyên dùng Python 3.10 trở lên).
+- Không yêu cầu cài đặt thêm thư viện bên ngoài (sử dụng thư viện chuẩn `abc`, `enum`, `datetime`, `typing`, `time`, `sys`).
 
-### Thực thi chương trình
+### Cách 1: Chạy Master Test Runner (Chạy toàn bộ 7 Test Cases)
+Lệnh này sẽ chạy tuần tự cả 7 test case, hiển thị log chi tiết và in bảng tổng kết trạng thái `[PASSED]`:
 ```bash
-# Clone dự án từ GitHub
-git clone https://github.com/ngminhduc129/Bai05.git
-cd Bai05
-
-# Chạy chương trình kiểm thử chính
 python main.py
+```
+
+### Cách 2: Chạy độc lập từng Test Case riêng lẻ (1 file = 1 test case)
+Mỗi file trong thư mục `tests/` là một đơn vị kiểm thử độc lập, có thể chạy riêng để gỡ lỗi từng chức năng:
+```bash
+# Test Case 1: Thêm thiết bị vào phòng & validation kiểu dữ liệu
+python tests/test_tc1_add_device.py
+
+# Test Case 2: Bắt lỗi trùng mã thiết bị & tính read-only của mã
+python tests/test_tc2_duplicate_id.py
+
+# Test Case 3: In danh sách thiết bị từng phòng & tính đóng gói danh sách
+python tests/test_tc3_list_devices.py
+
+# Test Case 4: Tính tổng chi phí bảo trì dự kiến (Tính Đa hình)
+python tests/test_tc4_maintenance_cost.py
+
+# Test Case 5: Lọc thiết bị cần bảo dưỡng (UnderMaintenance hoặc tuổi > 5 năm)
+python tests/test_tc5_maintenance_filter.py
+
+# Test Case 6: Kiểm thử quy tắc kết nối / ngắt kết nối mạng trên INetworkable
+python tests/test_tc6_network_connect.py
+
+# Test Case 7: Duyệt thiết bị mạng qua interface INetworkable (không phụ thuộc lớp cụ thể)
+python tests/test_tc7_network_iteration.py
 ```
 
 ---
