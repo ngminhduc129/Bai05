@@ -30,11 +30,13 @@ Hệ thống quản lý trang thiết bị phòng thực hành tin học tại t
 ```text
 Bai05/
 ├── main.py                 # File mã nguồn đơn nhất chứa toàn bộ hệ thống & kiểm thử
+├── class_diagram.drawio    # Sơ đồ quan hệ lớp định dạng Draw.io XML
 ├── BaoCao_Lab_W05.docx     # File báo cáo định dạng Microsoft Word (.docx)
 ├── BaoCao_Lab_W05.pdf      # File báo cáo định dạng PDF (.pdf)
 ├── BaoCao_Lab_W05.md       # File báo cáo chi tiết định dạng Markdown
 ├── BaoCao_Lab_W05.html     # File báo cáo định dạng HTML
 ├── generate_report.py      # Script tự động xuất báo cáo ra các định dạng
+├── generate_drawio.py      # Script tạo file class_diagram.drawio
 ├── lab w05a.pdf            # Đề bài thực hành gốc
 └── README.md               # Tài liệu hướng dẫn dự án
 ```
